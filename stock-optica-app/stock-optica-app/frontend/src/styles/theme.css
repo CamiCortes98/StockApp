@@ -1,0 +1,72 @@
+:root{
+  --gray-900: #aeafb3;
+  --gray-800: #aeafb0;
+  --gray-700: #b0c6eb;
+  --gray-200: #e5e7eb;
+  --emerald: #6fd3b1;
+  --navy: #4b77b3;
+  --bg: #c4c4c4;
+}
+
+body{
+  background: linear-gradient(180deg, var(--bg), #c4c4c4);
+  color: #797e84;
+  min-height: 100vh;
+}
+
+a{ color: var(--emerald); }
+a:hover{ color: #6fd3b1; }
+
+.card{
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(17,24,39,0.72);
+  backdrop-filter: blur(8px);
+}
+
+.form-control, .form-select{
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #f8fafc;
+}
+.form-control:focus, .form-select:focus{
+  box-shadow: 0 0 0 .2rem rgba(16,185,129,.18);
+  border-color: rgba(103, 179, 154, 0.55);
+}
+.form-control::placeholder{ color: rgba(248,250,252,0.45); }
+
+.btn-emerald{
+  background: var(--emerald);
+  border-color: var(--emerald);
+  color: #072013;
+}
+.btn-emerald:hover{
+  background: #34d399;
+  border-color: #34d399;
+}
+
+.badge-navy{
+  background: var(--navy);
+  border: 1px solid rgba(166, 146, 146, 0.12);
+}
+
+.table{
+  --bs-table-bg: rgba(211, 197, 197, 0.02);
+  --bs-table-border-color: rgba(255,255,255,0.08);
+  color: #f8fafc;
+}
+.table thead th{
+  color: rgba(248,250,252,0.85);
+}
+
+.navbar{
+  background: rgba(11,31,59,0.55);
+  border-bottom: 1px solid rgba(120, 117, 117, 0.1);
+}
+
+.small-muted{
+  color: rgba(248,250,252,0.60);
+}
+
+.hr-soft{
+  border-color: rgba(255,255,255,0.10);
+}
