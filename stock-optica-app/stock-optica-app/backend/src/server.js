@@ -45,7 +45,6 @@ async function main() {
   app.use("/api/users", userRoutes);
   app.use("/api/summary", summaryRoutes);
 
-  // Error handler
   app.use((err, req, res, next) => {
     console.error("[error]", err);
     res.status(500).json({ message: "Error interno" });

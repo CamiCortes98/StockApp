@@ -20,6 +20,9 @@ function daysUntil(dateIso?: string | null) {
   return diff;
 }
 
+const MOVEMENTS_PAGE_SIZE = 20;
+const SUMMARY_PAGE_SIZE = 20;
+
 export function StockPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [movements, setMovements] = useState<Movement[]>([]);
@@ -44,8 +47,62 @@ export function StockPage() {
   const [edit, setEdit] = useState<Movement | null>(null);
   const [editShow, setEditShow] = useState(false);
 
+  // Pagination
+  const [movementsPage, setMovementsPage] = useState(1);
+  const [summaryPage, setSummaryPage] = useState(1);
+  const [movementQuery, setMovementQuery] = useState("");
+  const summaryPositions = summary?.positions || [];
+
+  const movementsFiltered = useMemo(() => {
+    const q = movementQuery.trim().toLowerCase();
+    if (!q) return movements;
+    return movements.filter((m) => {
+      const parts = [
+        m.product?.name,
+        m.type === "IN" ? "ingreso" : "egreso",
+        m.type,
+        m.lot,
+        m.diopters,
+        m.note,
+        m.performedBy?.name,
+        m.quantity?.toString(),
+        m.createdAt,
+        m.expirationDate,
+      ];
+      return parts.some((v) => (v || "").toString().toLowerCase().includes(q));
+    });
+  }, [movements, movementQuery]);
+
+  const movementsTotalPages = useMemo(() => Math.max(1, Math.ceil(movementsFiltered.length / MOVEMENTS_PAGE_SIZE)), [movementsFiltered.length]);
+  const summaryTotalPages = useMemo(() => Math.max(1, Math.ceil(summaryPositions.length / SUMMARY_PAGE_SIZE)), [summaryPositions.length]);
+
+  const movementsPageItems = useMemo(() => {
+    const start = (movementsPage - 1) * MOVEMENTS_PAGE_SIZE;
+    return movementsFiltered.slice(start, start + MOVEMENTS_PAGE_SIZE);
+  }, [movementsFiltered, movementsPage]);
+
+  const summaryPageItems = useMemo(() => {
+    const start = (summaryPage - 1) * SUMMARY_PAGE_SIZE;
+    return summaryPositions.slice(start, start + SUMMARY_PAGE_SIZE);
+  }, [summaryPositions, summaryPage]);
+
+  useEffect(() => {
+    setMovementsPage((p) => Math.min(p, movementsTotalPages));
+  }, [movementsTotalPages]);
+
+  useEffect(() => {
+    setMovementsPage(1);
+  }, [movementQuery]);
+
+  useEffect(() => {
+    setSummaryPage((p) => Math.min(p, summaryTotalPages));
+  }, [summaryTotalPages]);
+
   const selectedIds = useMemo(() => Object.keys(selected).filter((id) => selected[id]), [selected]);
-  const allSelected = useMemo(() => movements.length > 0 && selectedIds.length === movements.length, [movements, selectedIds]);
+  const allSelected = useMemo(
+    () => movementsPageItems.length > 0 && movementsPageItems.every((m) => selected[m._id]),
+    [movementsPageItems, selected]
+  );
 
   const load = async () => {
     setError(null);
@@ -154,11 +211,13 @@ export function StockPage() {
   };
 
   const toggleAll = () => {
-    if (movements.length === 0) return;
-    const next: Record<string, boolean> = {};
-    const to = !allSelected;
-    for (const m of movements) next[m._id] = to;
-    setSelected(next);
+    if (movementsPageItems.length === 0) return;
+    setSelected((prev) => {
+      const to = !allSelected;
+      const next = { ...prev };
+      for (const m of movementsPageItems) next[m._id] = to;
+      return next;
+    });
   };
 
   const rowClassForExpiry = (iso?: string | null) => {
@@ -263,7 +322,15 @@ export function StockPage() {
               <div className="fw-semibold">Listado de movimientos</div>
             </div>
             <div className="d-flex align-items-center gap-2">
-              <button className="btn btn-sm btn-outline-light" onClick={toggleAll} disabled={movements.length === 0}>
+              <input
+                className="form-control form-control-sm"
+                style={{ width: 220 }}
+                placeholder="Buscar..."
+                value={movementQuery}
+                onChange={(e) => setMovementQuery(e.target.value)}
+                aria-label="Buscar movimientos"
+              />
+              <button className="btn btn-sm btn-outline-light" onClick={toggleAll} disabled={movementsPageItems.length === 0}>
                 {allSelected ? "Deseleccionar todo" : "Seleccionar todo"}
               </button>
               <button className="btn btn-sm btn-outline-danger" onClick={bulkDelete} disabled={selectedIds.length === 0 || busy}>
@@ -289,7 +356,7 @@ export function StockPage() {
                 </tr>
               </thead>
               <tbody>
-                {movements.map((m) => (
+                {movementsPageItems.map((m) => (
                   <tr key={m._id} className={rowClassForExpiry(m.expirationDate || null)}>
                     <td>
                       <input type="checkbox" className="form-check-input" checked={!!selected[m._id]} onChange={(e) => setSelected((s) => ({ ...s, [m._id]: e.target.checked }))} />
@@ -331,15 +398,32 @@ export function StockPage() {
                     </td>
                   </tr>
                 ))}
-                {movements.length === 0 && (
+                {movementsFiltered.length === 0 && (
                   <tr>
                     <td colSpan={10} className="text-center small-muted py-4">
-                      Sin movimientos todavía.
+                      {movements.length === 0 ? "Sin movimientos todavía." : "Sin resultados para la búsqueda."}
                     </td>
                   </tr>
                 )}
               </tbody>
             </table>
+          </div>
+          <div className="d-flex align-items-center justify-content-end gap-2 mt-2">
+            <button
+              className="btn btn-sm btn-outline-light"
+              onClick={() => setMovementsPage((p) => Math.max(1, p - 1))}
+              disabled={movementsPage <= 1}
+            >
+              {"<"}
+            </button>
+            <div className="small-muted">Pagina {movementsPage} de {movementsTotalPages}</div>
+            <button
+              className="btn btn-sm btn-outline-light"
+              onClick={() => setMovementsPage((p) => Math.min(movementsTotalPages, p + 1))}
+              disabled={movementsPage >= movementsTotalPages}
+            >
+              {">"}
+            </button>
           </div>
         </div>
       </div>
@@ -378,7 +462,7 @@ export function StockPage() {
                 </tr>
               </thead>
               <tbody>
-                {(summary?.positions || []).map((p, idx) => (
+                {summaryPageItems.map((p, idx) => (
                   <tr key={idx} className={rowClassForExpiry(p.expirationDate)}>
                     <td className="fw-semibold">{p.productName}</td>
                     <td>{p.lot || "-"}</td>
@@ -387,7 +471,7 @@ export function StockPage() {
                     <td className="text-end">{p.quantity}</td>
                   </tr>
                 ))}
-                {(summary?.positions || []).length === 0 && (
+                {summaryPositions.length === 0 && (
                   <tr>
                     <td colSpan={5} className="text-center small-muted py-4">
                       Sin posiciones calculadas.
@@ -396,6 +480,23 @@ export function StockPage() {
                 )}
               </tbody>
             </table>
+          </div>
+          <div className="d-flex align-items-center justify-content-end gap-2 mt-2">
+            <button
+              className="btn btn-sm btn-outline-light"
+              onClick={() => setSummaryPage((p) => Math.max(1, p - 1))}
+              disabled={summaryPage <= 1}
+            >
+              {"<"}
+            </button>
+            <div className="small-muted">Pagina {summaryPage} de {summaryTotalPages}</div>
+            <button
+              className="btn btn-sm btn-outline-light"
+              onClick={() => setSummaryPage((p) => Math.min(summaryTotalPages, p + 1))}
+              disabled={summaryPage >= summaryTotalPages}
+            >
+              {">"}
+            </button>
           </div>
         </div>
       </div>

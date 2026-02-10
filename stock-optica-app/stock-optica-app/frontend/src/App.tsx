@@ -4,6 +4,7 @@ import { useAuth } from "./auth";
 import { LoginPage } from "./pages/Login";
 import { StockPage } from "./pages/Stock";
 import { AdminPage } from "./pages/Admin";
+import { Dashboard } from "./pages/Dashboard";
 import { AppNavbar } from "./components/AppNavbar";
 
 function Protected({ children }: { children: React.ReactNode }) {
@@ -22,6 +23,14 @@ export default function App() {
       <Routes>
         <Route path="/" element={<LoginPage />} />
         <Route
+          path="/dashboard"
+          element={
+            <Protected>
+              <Dashboard />
+            </Protected>
+          }
+        />
+        <Route
           path="/stock"
           element={
             <Protected>
@@ -37,7 +46,7 @@ export default function App() {
             </Protected>
           }
         />
-        <Route path="*" element={<Navigate to={user ? "/stock" : "/"} replace />} />
+        <Route path="*" element={<Navigate to={user ? "/dashboard" : "/"} replace />} />
       </Routes>
     </>
   );

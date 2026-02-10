@@ -20,6 +20,11 @@ export function AppNavbar() {
         <div className="collapse navbar-collapse" id="nav">
           <ul className="navbar-nav me-auto">
             <li className="nav-item">
+              <NavLink className="nav-link" to="/dashboard">
+                Dashboard
+              </NavLink>
+            </li>
+            <li className="nav-item">
               <NavLink className="nav-link" to="/stock">
                 Movimientos
               </NavLink>
