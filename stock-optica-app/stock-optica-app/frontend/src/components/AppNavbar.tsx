@@ -1,6 +1,7 @@
 import React from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth";
+import logo from "../logo.png";
 
 export function AppNavbar() {
   const { user, logout } = useAuth();
@@ -10,7 +11,8 @@ export function AppNavbar() {
     <nav className="navbar navbar-expand-lg navbar-dark sticky-top">
       <div className="container">
         <Link className="navbar-brand fw-semibold" to="/stock">
-          <span className="badge badge-navy me-2">Óptica</span> Stock
+          <span className="badge badge-navy me-2">Óptica</span>
+          <img className="brand-logo" src={logo} alt="Stock" />
         </Link>
 
         <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
@@ -27,6 +29,11 @@ export function AppNavbar() {
             <li className="nav-item">
               <NavLink className="nav-link" to="/stock">
                 Movimientos
+              </NavLink>
+            </li>
+            <li className="nav-item">
+              <NavLink className="nav-link" to="/transferencias">
+                Transferencias
               </NavLink>
             </li>
             {user?.role === "admin" && (

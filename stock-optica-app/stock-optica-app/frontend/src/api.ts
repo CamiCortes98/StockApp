@@ -47,6 +47,20 @@ export type Movement = {
   createdAt: string;
 };
 
+export type Transfer = {
+  _id: string;
+  product: { _id: string; name: string };
+  quantity: number;
+  fromBranch: string;
+  toBranch: string;
+  lot?: string;
+  diopters?: string;
+  expirationDate?: string | null;
+  performedBy: { _id: string; name: string; email: string; role: string };
+  note?: string;
+  createdAt: string;
+};
+
 export type SummaryPosition = {
   productId: string;
   productName: string;
@@ -87,6 +101,13 @@ export async function createProduct(payload: { name: string; brand?: string; not
   return request<{ product: Product }>("/api/products", { method: "POST", body: JSON.stringify(payload) });
 }
 
+export async function bulkCreateProducts(items: { name: string; brand?: string; notes?: string }[]) {
+  return request<{ createdCount: number; skippedCount: number; skipped: { invalid: any[]; duplicates: any[]; existing: string[] } }>(
+    "/api/products/bulk",
+    { method: "POST", body: JSON.stringify({ items }) }
+  );
+}
+
 export async function deleteProduct(id: string) {
   return request<{ ok: true }>(`/api/products/${id}`, { method: "DELETE" });
 }
@@ -95,8 +116,16 @@ export async function listMovements(limit = 200) {
   return request<{ movements: Movement[] }>(`/api/movements?limit=${limit}`, { method: "GET" });
 }
 
+export async function listTransfers(limit = 200) {
+  return request<{ transfers: Transfer[] }>(`/api/transfers?limit=${limit}`, { method: "GET" });
+}
+
 export async function createMovement(payload: any) {
   return request<{ movement: Movement }>("/api/movements", { method: "POST", body: JSON.stringify(payload) });
+}
+
+export async function createTransfer(payload: any) {
+  return request<{ transfer: Transfer }>("/api/transfers", { method: "POST", body: JSON.stringify(payload) });
 }
 
 export async function updateMovement(id: string, payload: any) {

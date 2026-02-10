@@ -13,6 +13,7 @@ const productRoutes = require("./routes/products");
 const movementRoutes = require("./routes/movements");
 const userRoutes = require("./routes/users");
 const summaryRoutes = require("./routes/summary");
+const transferRoutes = require("./routes/transfers");
 
 const PORT = process.env.PORT || 4000;
 const MONGODB_URI = process.env.MONGODB_URI;
@@ -42,6 +43,7 @@ async function main() {
   app.use("/api/auth", authRoutes);
   app.use("/api/products", productRoutes);
   app.use("/api/movements", movementRoutes);
+  app.use("/api/transfers", transferRoutes);
   app.use("/api/users", userRoutes);
   app.use("/api/summary", summaryRoutes);
 

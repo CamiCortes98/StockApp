@@ -5,11 +5,26 @@ import { LoginPage } from "./pages/Login";
 import { StockPage } from "./pages/Stock";
 import { AdminPage } from "./pages/Admin";
 import { Dashboard } from "./pages/Dashboard";
+import { TransferPage } from "./pages/Transfer";
 import { AppNavbar } from "./components/AppNavbar";
 
 function Protected({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
-  if (loading) return <div className="container py-5 text-center"><div className="spinner-border text-light" role="status" /></div>;
+  if (loading)
+    return (
+      <div className="page-loader">
+        <div className="spinner" role="status" aria-label="Cargando">
+          <span />
+          <span />
+          <span />
+          <span />
+          <span />
+          <span />
+          <span />
+          <span />
+        </div>
+      </div>
+    );
   if (!user) return <Navigate to="/" replace />;
   return <>{children}</>;
 }
@@ -35,6 +50,14 @@ export default function App() {
           element={
             <Protected>
               <StockPage />
+            </Protected>
+          }
+        />
+        <Route
+          path="/transferencias"
+          element={
+            <Protected>
+              <TransferPage />
             </Protected>
           }
         />

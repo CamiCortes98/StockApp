@@ -29,6 +29,73 @@ router.post(
   }
 );
 
+router.post(
+  "/bulk",
+  requireAuth(),
+  requireRole("admin"),
+  [body("items").isArray({ min: 1, max: 500 })],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+    const rawItems = req.body.items || [];
+    const cleaned = [];
+    const invalid = [];
+    const duplicates = [];
+    const seen = new Set();
+
+    rawItems.forEach((item, idx) => {
+      const name = (item?.name || "").toString().trim();
+      const brand = (item?.brand || "").toString().trim();
+      const notes = (item?.notes || "").toString().trim();
+      if (!name || name.length < 2) {
+        invalid.push({ index: idx, name });
+        return;
+      }
+      const key = name.toLowerCase();
+      if (seen.has(key)) {
+        duplicates.push({ index: idx, name });
+        return;
+      }
+      seen.add(key);
+      cleaned.push({ name, brand, notes, _key: key });
+    });
+
+    if (cleaned.length === 0) {
+      return res.status(400).json({ message: "No hay productos válidos para crear" });
+    }
+
+    const names = cleaned.map((c) => c.name);
+    const existing = await Product.find({ name: { $in: names } })
+      .collation({ locale: "es", strength: 2 })
+      .select("name");
+    const existingSet = new Set(existing.map((p) => p.name.toLowerCase()));
+
+    const toCreate = cleaned.filter((c) => !existingSet.has(c._key));
+    const existingNames = cleaned.filter((c) => existingSet.has(c._key)).map((c) => c.name);
+
+    let created = [];
+    try {
+      created = await Product.insertMany(
+        toCreate.map(({ _key, ...rest }) => rest),
+        { ordered: false }
+      );
+    } catch (err) {
+      created = err?.insertedDocs || [];
+    }
+
+    res.status(201).json({
+      createdCount: created.length,
+      skippedCount: invalid.length + duplicates.length + existingNames.length,
+      skipped: {
+        invalid,
+        duplicates,
+        existing: existingNames,
+      },
+    });
+  }
+);
+
 router.put(
   "/:id",
   requireAuth(),

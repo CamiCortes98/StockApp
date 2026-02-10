@@ -171,11 +171,16 @@ export const Dashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="dashboard-container">
-        <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "400px" }}>
-          <div className="spinner-border text-light" role="status">
-            <span className="visually-hidden">Cargando...</span>
-          </div>
+      <div className="page-loader">
+        <div className="spinner" role="status" aria-label="Cargando">
+          <span />
+          <span />
+          <span />
+          <span />
+          <span />
+          <span />
+          <span />
+          <span />
         </div>
       </div>
     );

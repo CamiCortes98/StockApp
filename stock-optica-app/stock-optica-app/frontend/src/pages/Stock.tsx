@@ -29,6 +29,7 @@ export function StockPage() {
   const [summary, setSummary] = useState<{ totals: any; positions: SummaryPosition[] } | null>(null);
 
   const [busy, setBusy] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // New movement form
@@ -117,6 +118,7 @@ export function StockPage() {
       setError(err?.message || "Error al cargar datos");
     } finally {
       setBusy(false);
+      setInitialLoading(false);
     }
   };
 
@@ -227,6 +229,23 @@ export function StockPage() {
     if (d <= 30) return "table-warning";
     return "";
   };
+
+  if (initialLoading) {
+    return (
+      <div className="page-loader">
+        <div className="spinner" role="status" aria-label="Cargando">
+          <span />
+          <span />
+          <span />
+          <span />
+          <span />
+          <span />
+          <span />
+          <span />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container py-4">
